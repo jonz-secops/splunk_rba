@@ -29,10 +29,10 @@ values(All_Risk.threat_object) as threat_object,
 values(All_Risk.threat_object_type) as threat_object_type,
 dc(source) as source_count,
 ,max(_time) as _time
-from datamodel=Risk.All_Risk by All_Risk.risk_object,All_Risk.risk_object_type, source | `drop_dm_object_name("All_Risk")` | eval "annotations.mitre_attack"='annotations.mitre_attack.mitre_technique_id' | `get_risk_severity(risk_score)`
+from datamodel=Risk.All_Risk by All_Risk.normalized_risk_object,All_Risk.risk_object_type, source | `drop_dm_object_name("All_Risk")` | eval "annotations.mitre_attack"='annotations.mitre_attack.mitre_technique_id' | `get_risk_severity(risk_score)`
 | eval capped_risk_score=if(summed_risk_score < single_risk_score*2, summed_risk_score, single_risk_score*2)
 | stats values(*) as * sum(capped_risk_score) as capped_risk_score sum(summed_risk_score) as summed_risk_score dc(annotations.mitre_attack.mitre_tactic_id) as mitre_tactic_id_count dc(annotations.mitre_attack.mitre_technique_id) as mitre_technique_id_count sum(risk_event_count) as risk_event_count dc(source) as source_count
- BY risk_object risk_object_type
+ BY normalized_risk_object risk_object_type
 | fields - single_risk_score count
 | eval risk_score = summed_risk_score
 | where capped_risk_score > 100
