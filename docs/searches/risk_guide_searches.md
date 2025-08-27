@@ -5,7 +5,8 @@
 ## Determine Correlation Searches with High False/Benign Positive Rates
 
 ```shell linenums="1"
-`notable`
+index=notable
+| `get_current_status`
 | stats count(eval({==status_label==}="Incident")) as incident count(eval({==status_label==}="Resolved")) as closed
  BY source
 | eval benign_rate = 1 - incident / (incident + closed)
