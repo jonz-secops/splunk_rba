@@ -194,12 +194,13 @@ Voila! We now ensure that our signature-based risk rule data sources will proper
 
 ## Method II
 
-This method is elegantly simple to ensure notables don't re-fire as earlier events drop off the rolling search window of your Risk Incident Rules. It does this by only firing if the latest risk event is from the past 70 minutes.
+This method is elegantly simple to ensure notables don't re-fire as earlier events drop off the rolling search window of your Risk Incident Rules but the score is still above the threshold; you've already dealt with the notable when it had the highest score so you don't need to see it again. It does this by only firing if the latest risk event is from the past 70 minutes.
+
+Because _indextime is not stored in the risk datamodel, you will have to add the hidden field _indextime from the raw events to the risk DM to use in default RIRs. Create a calculated field called index_time with an eval of `_indextime`, re-accelerate and rebuild the DM, then add `latest(All_Risk.index_time) AS latest_event` to the base search of your RIR and immediately following:
 
 ``` spl title="Append to existing RIR"
 ...
-| stats latest(_indextime) AS latest_risk
-| where latest_risk >= relative_time(now(),"-70m@m")
+| where latest_event >= relative_time(now(),"-70m@m")
 ```
 
 Credit to Josh Hrabar and James Campbell, this is brilliant. Thanks y'all!
